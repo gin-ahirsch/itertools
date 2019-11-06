@@ -113,7 +113,7 @@ pub mod structs {
     pub use format::{Format, FormatWith};
     #[cfg(feature = "use_std")]
     pub use groupbylazy::{IntoChunks, Chunk, Chunks, GroupBy, Group, Groups};
-    pub use intersperse::Intersperse;
+    pub use intersperse::{Intersperse, IntersperseWith};
     #[cfg(feature = "use_std")]
     pub use kmerge_impl::{KMerge, KMergeBy};
     pub use merge_join::MergeJoinBy;
@@ -402,6 +402,27 @@ pub trait Itertools : Iterator {
               Self::Item: Clone
     {
         intersperse::intersperse(self, element)
+    }
+
+    /// An iterator adaptor to insert a particular value created by a function
+    /// between each element of the adapted iterator.
+    ///
+    /// Iterator element type is `Self::Item`.
+    ///
+    /// This iterator is *fused*.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let mut i = 10;
+    /// itertools::assert_equal((0..3).intersperse_with(|| { i -= 1; i }), vec![0, 9, 1, 8, 2]);
+    /// assert_eq!(i, 8);
+    /// ```
+    fn intersperse_with<F>(self, element: F) -> IntersperseWith<Self, F>
+        where Self: Sized,
+        F: FnMut() -> Self::Item
+    {
+        intersperse::intersperse_with(self, element)
     }
 
     /// Create an iterator which iterates over both this and the specified
